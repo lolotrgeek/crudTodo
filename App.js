@@ -20,25 +20,22 @@ export default function App() {
   const [todos, setTodos] = useState([]); // state of todo list
 
   const getAll = async () => {
-    console.log('getting all entries... ')
-    const keys = await AsyncStorage.getAllKeys()
-    console.log(keys)
+    console.log('ASYNC STORAGE - getting all entries... ')
+        const keys = await AsyncStorage.getAllKeys()
+    console.info('ASYNC STORAGE - KEYS :', keys)
     const stores = await AsyncStorage.multiGet(keys)
     stores.map((result, i, store) => {
-      // let key = store[i][0]
-      // let value = store[i][1]
       let key = result[0]
       let value = result[1]
       if (typeof value === 'string' && value.charAt(0) === '{') {
-        console.log(result)
         let value = JSON.parse(result[1])
         let entry = [key, value]
-        console.log('adding entry to state')
+        console.log('ASYNC STORAGE - ADDING TO STATE : ' , result)
         setTodos(todos => [...todos, entry])
         // https://stackoverflow.com/questions/54676966/push-method-in-react-hooks-usestate
       }
       else {
-        console.log('INVALID: ' + result)
+        console.log('ASYNC STORAGE - INVALID ENTRY: ' , result)
       }
     });
   }
@@ -47,37 +44,60 @@ export default function App() {
   }, []) // [] makes useEffect run once!
   // https://css-tricks.com/run-useeffect-only-once/
 
+  const stringifyValue = (value) => {
+    if (typeof value === 'object' || Array.isArray(value)) value = JSON.stringify(value) 
+    return value
+  } 
+
+  /**
+   * Add key value pair to Async Storage
+   * @param {*} key 
+   * @param {*} value 
+   */
   const storeItem = async (key, value) => {
     if (typeof value === 'object' || Array.isArray(value)) value = JSON.stringify(value)
     try {
-      console.log('storing [' + key + ' , ' + value + ']')
+      console.log('ASYNC STORAGE - STORING : [' + key + ' , ' + value + ']')
       await AsyncStorage.setItem(key, value);
     } catch (error) {
       console.error(error)
     }
   };
 
+  /**
+   * Update existing key with given value in Async Storage
+   * @param {*} key 
+   * @param {*} value 
+   */
   const updateItem = async (key, value) => {
     if (typeof value === 'object' || Array.isArray(value) ) value = JSON.stringify(value)
     try {
-      console.log('updating [' + key + ' , ' + value + ']')
+      console.log('ASYNC STORAGE - UPDATING: ', [key, value] )
       await AsyncStorage.mergeItem(key, value);
     } catch (error) {
       console.error(error)
     }
   };
+
+  /**
+   * Remove item by key in Async Storage
+   * @param {*} key 
+   */
   const removeItem = async key => {
     try {
-      console.log('removing ' + key)
+      console.log('ASYNC STORAGE - REMOVING : ' + key)
       await AsyncStorage.removeItem(key);
     } catch (error) {
       console.error(error)
     }
   }
 
+  /**
+   *  Delete entire async Storage
+   */
   const removeAll = async () => {
     try {
-      console.log('removing all')
+      console.log('ASYNC STORAGE - REMOVING ALL')
       setTodos([])
       await AsyncStorage.clear()
     } catch (error) {
@@ -117,13 +137,13 @@ export default function App() {
         return todo
       }
     })
-    console.log(update)
-    console.log(todos)
+    console.log('STATE - updated : ' , update)
+    console.log('STATE - todos : ' , todos)
     // setTodos([...todos, update[1].text = editvalue.input])
   }
 
   const todoState = id => {
-    console.log(editvalue)
+    // console.log('STATE- editvalue : ' , editvalue)
     if (editvalue.id && editvalue.id === id) return true
   }
 
